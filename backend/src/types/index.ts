@@ -42,10 +42,10 @@ export interface IJob {
   city: 'Hubli' | 'Dharwad';
   hourlyRate: number; // snapshot at job creation
   estimatedHours: number;
-  status: 'open' | 'accepted' | 'work_done' | 'payment_received' | 'completed' | 'cancelled';
+  status: 'open' | 'in_progress' | 'awaiting_completion' | 'completed' | 'cancelled';
   createdAt: Date;
   acceptedAt?: Date;
-  workDoneAt?: Date;
+  workCompletedAt?: Date;
   paymentReceivedAt?: Date;
   completedAt?: Date;
 }

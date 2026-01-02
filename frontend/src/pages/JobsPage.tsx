@@ -191,9 +191,8 @@ const JobsPage: React.FC = () => {
             >
               <option value="all">All Jobs</option>
               <option value="open">Open</option>
-              <option value="accepted">Accepted</option>
-              <option value="work_done">Work Done</option>
-              <option value="payment_received">Payment Received</option>
+              <option value="in_progress">In Progress</option>
+              <option value="awaiting_completion">Awaiting Completion</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>

@@ -5,13 +5,16 @@ import { Client } from '../models/Client';
 import { Labour } from '../models/Labour';
 import { Category } from '../models/Category';
 import { Job } from '../models/Job';
+import { JobApplication } from '../models/JobApplication';
 import { Rating } from '../models/Rating';
 import { generateToken } from '../utils/jwt';
 import jobRoutes from '../routes/jobs';
+import jobApplicationRoutes from '../routes/jobApplications';
 
 const app = express();
 app.use(express.json());
 app.use('/api/jobs', jobRoutes);
+app.use('/api/jobs', jobApplicationRoutes);
 
 describe('Job Lifecycle', () => {
   let clientUser: any;
@@ -79,29 +82,42 @@ describe('Job Lifecycle', () => {
 
     const jobId = createJobResponse.body.job._id;
 
-    // 2. Labour accepts job
-    const acceptJobResponse = await request(app)
-      .patch(`/api/jobs/${jobId}/accept`)
-      .set('Authorization', `Bearer ${labourToken}`);
+    // 2. Labour submits application for job
+    const applyResponse = await request(app)
+      .post(`/api/jobs/${jobId}/apply`)
+      .set('Authorization', `Bearer ${labourToken}`)
+      .send({
+        message: 'I am experienced in plumbing work.'
+      });
 
-    expect(acceptJobResponse.status).toBe(200);
-    expect(acceptJobResponse.body.job.status).toBe('accepted');
+    expect(applyResponse.status).toBe(201);
+    const applicationId = applyResponse.body.application._id;
 
-    // 3. Client marks work done
+    // 3. Client accepts the application
+    const acceptApplicationResponse = await request(app)
+      .patch(`/api/jobs/applications/${applicationId}/accept`)
+      .set('Authorization', `Bearer ${clientToken}`);
+
+    expect(acceptApplicationResponse.status).toBe(200);
+    expect(acceptApplicationResponse.body.job.status).toBe('in_progress');
+
+    // 4. Client marks work done
     const markDoneResponse = await request(app)
       .patch(`/api/jobs/${jobId}/work-done`)
       .set('Authorization', `Bearer ${clientToken}`);
 
     expect(markDoneResponse.status).toBe(200);
+    expect(markDoneResponse.body.job.status).toBe('awaiting_completion');
 
-    // 4. Labour marks payment received
+    // 5. Labour marks payment received
     const paymentResponse = await request(app)
       .patch(`/api/jobs/${jobId}/payment-received`)
       .set('Authorization', `Bearer ${labourToken}`);
 
     expect(paymentResponse.status).toBe(200);
+    expect(paymentResponse.body.job.status).toBe('completed');
 
-    // 5. Client rates and completes job
+    // 6. Client rates the completed job
     const rateJobResponse = await request(app)
       .post(`/api/jobs/${jobId}/rate`)
       .set('Authorization', `Bearer ${clientToken}`)

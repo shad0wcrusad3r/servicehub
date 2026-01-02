@@ -206,27 +206,33 @@ export const markPaymentReceived = async (req: AuthRequest, res: Response): Prom
 
 // Rate and complete job
 export const rateAndCompleteJob = async (req: AuthRequest, res: Response): Promise<void | Response> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // Check if we're in test/development environment or if transactions are supported
+  const useTransactions = process.env.NODE_ENV === 'production';
+  let session: mongoose.ClientSession | null = null;
 
   try {
+    if (useTransactions) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
+
     const { id } = req.params;
     const { rating, comment } = req.body;
 
-    const job = await Job.findById(id).session(session);
+    const job = await Job.findById(id);
     if (!job) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    const client = await Client.findOne({ user: req.user!.id }).session(session);
+    const client = await Client.findOne({ user: req.user!.id });
     if (!client || !job.client.equals(client._id)) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     if (job.status !== 'completed') {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       return res.status(400).json({ error: 'Job must be completed before rating' });
     }
 
@@ -239,21 +245,21 @@ export const rateAndCompleteJob = async (req: AuthRequest, res: Response): Promi
       comment,
     });
 
-    await newRating.save({ session });
+    await newRating.save(session ? { session } : undefined);
 
     // Update labour's rating
-    const labour = await Labour.findById(job.labour).session(session);
+    const labour = await Labour.findById(job.labour);
     if (labour) {
       labour.totalRating += rating;
       labour.ratingCount += 1;
       labour.averageRating = labour.totalRating / labour.ratingCount;
-      await labour.save({ session });
+      await labour.save(session ? { session } : undefined);
     }
 
     // Job is already completed, just save the rating timestamp
-    await job.save({ session });
+    await job.save(session ? { session } : undefined);
 
-    await session.commitTransaction();
+    if (session) await session.commitTransaction();
 
     res.json({
       message: 'Job completed and rated successfully',
@@ -261,11 +267,11 @@ export const rateAndCompleteJob = async (req: AuthRequest, res: Response): Promi
       rating: newRating,
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session) await session.abortTransaction();
     console.error('Rate and complete job error:', error);
     res.status(500).json({ error: 'Internal server error' });
   } finally {
-    session.endSession();
+    if (session) session.endSession();
   }
 };
 

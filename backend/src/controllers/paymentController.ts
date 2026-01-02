@@ -6,7 +6,7 @@ export const mockPayment = async (req: Request, res: Response): Promise<void | R
   try {
     const { jobId, amount, paymentMethod = 'mock' } = req.body;
 
-    // Validate job exists and is in work_done status
+    // Validate job exists and is in awaiting_completion status
     const job = await Job.findById(jobId)
       .populate('client', 'name')
       .populate('labour', 'name') as any;
@@ -18,7 +18,7 @@ export const mockPayment = async (req: Request, res: Response): Promise<void | R
       });
     }
 
-    if (job.status !== 'work_done') {
+    if (job.status !== 'awaiting_completion') {
       return res.status(400).json({ 
         success: false,
         error: 'Job is not ready for payment' 

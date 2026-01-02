@@ -176,10 +176,10 @@ const ClientDashboard: React.FC = () => {
                     )}
                     {job.status === 'completed' && (
                       <button
-                        onClick={() => navigate(`/jobs/${job._id}`)}
+                        onClick={() => navigate(`/job/${job._id}`)}
                         className="text-xs px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
                       >
-                        Rate Worker
+                        View Details / Rate Worker
                       </button>
                     )}
                   </div>

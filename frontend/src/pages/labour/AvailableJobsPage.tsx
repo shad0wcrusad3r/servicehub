@@ -139,10 +139,10 @@ const AvailableJobsPage: React.FC = () => {
                   <div className="flex flex-col items-end gap-3 md:w-48">
                     <div className="text-right">
                       <div className="flex items-center justify-end text-2xl font-bold text-gray-900">
-                        ₹{formatCurrency(job.hourlyRate)}/hr
+                        {formatCurrency(job.hourlyRate)}/hr
                       </div>
                       <p className="text-sm text-gray-600 mt-1">
-                        Est. ₹{formatCurrency(job.hourlyRate * job.estimatedHours)}
+                        Est. {formatCurrency(job.hourlyRate * job.estimatedHours)}
                       </p>
                     </div>
                     <Button
@@ -151,7 +151,7 @@ const AvailableJobsPage: React.FC = () => {
                       onClick={() => handleApply(job)}
                       disabled={hasApplied(job._id)}
                     >
-                      {hasApplied(job._id) ? 'Already Applied' : 'Apply Now'}
+                      {hasApplied(job._id) ? 'Applied' : 'Apply Now'}
                     </Button>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ const AvailableJobsPage: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-gray-900">{selectedJob.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  {selectedJob.category.name} • {selectedJob.city} • ₹{formatCurrency(selectedJob.hourlyRate)}/hr
+                  {selectedJob.category.name} • {selectedJob.city} • {formatCurrency(selectedJob.hourlyRate)}/hr
                 </p>
               </div>
 

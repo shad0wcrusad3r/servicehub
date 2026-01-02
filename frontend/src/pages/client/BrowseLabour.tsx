@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import { Search, Filter, MapPin, Phone } from 'lucide-react';
 import { Labour, Category } from '../../types';
-import { formatCurrency, renderStars, truncateText } from '../../utils/helpers';
+import { formatCurrency, truncateText } from '../../utils/helpers';
+import StarRating from '../../components/ui/StarRating';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
 import api from '../../utils/api';
@@ -157,14 +158,13 @@ const BrowseLabour: React.FC = () => {
 
                 {/* Rating */}
                 <div className="flex items-center mb-4">
-                  <div className="flex items-center">
-                    <span className="text-yellow-500 mr-1">
-                      {renderStars(labour.averageRating)}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {labour.averageRating.toFixed(1)} ({labour.ratingCount} reviews)
-                    </span>
-                  </div>
+                  <StarRating 
+                    rating={labour.averageRating} 
+                    readonly 
+                    size="sm" 
+                    showCount 
+                    count={labour.ratingCount}
+                  />
                 </div>
 
                 {/* Recent Comments */}

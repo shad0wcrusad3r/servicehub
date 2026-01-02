@@ -15,6 +15,7 @@ import BrowseLabour from './pages/client/BrowseLabour';
 import PostJobPage from './pages/client/PostJobPage';
 import JobApplicationsPage from './pages/client/JobApplicationsPage';
 import JobsPage from './pages/JobsPage';
+import JobDetailsPage from './pages/JobDetailsPage';
 
 // Protected route wrapper
 const ProtectedRoute: React.FC<{
@@ -169,6 +170,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <JobsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/job/:jobId"
+            element={
+              <ProtectedRoute>
+                <JobDetailsPage />
               </ProtectedRoute>
             }
           />

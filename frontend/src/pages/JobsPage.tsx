@@ -13,6 +13,9 @@ const JobsPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [applicationMessage, setApplicationMessage] = useState('');
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   // Fetch jobs based on user role
   const { data: jobsData, isLoading } = useQuery('my-jobs', async () => {
@@ -33,16 +36,37 @@ const JobsPage: React.FC = () => {
     }
   });
 
-  // Accept job mutation (labour only)
-  const acceptJobMutation = useMutation(
-    async (jobId: string) => {
-      const response = await api.patch(`/jobs/${jobId}/accept`);
+  // Fetch my applications to check if already applied
+  const { data: myApplicationsData } = useQuery(
+    'my-applications',
+    async () => {
+      const response = await api.get('/jobs/my-applications');
+      return response.data;
+    },
+    {
+      enabled: user?.role === 'labour',
+    }
+  );
+
+  // Submit job application mutation (labour only)
+  const submitApplicationMutation = useMutation(
+    async ({ jobId, message }: { jobId: string; message?: string }) => {
+      const response = await api.post(`/jobs/${jobId}/apply`, {
+        message: message?.trim() || undefined,
+      });
       return response.data;
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('my-jobs');
-        toast.success('Job accepted successfully!');
+        queryClient.invalidateQueries('my-applications');
+        toast.success('Application submitted successfully!');
+        setShowApplicationModal(false);
+        setSelectedJob(null);
+        setApplicationMessage('');
+      },
+      onError: (error: any) => {
+        toast.error(error.response?.data?.error || 'Failed to submit application');
       },
     }
   );
@@ -81,10 +105,35 @@ const JobsPage: React.FC = () => {
 
   const myJobs = jobsData?.myJobs || [];
   const availableJobs = jobsData?.availableJobs || [];
+  const myApplications = myApplicationsData?.applications || [];
 
   const filteredMyJobs = statusFilter === 'all' 
     ? myJobs 
     : myJobs.filter((job: Job) => job.status === statusFilter);
+
+  // Check if already applied to a job
+  const hasApplied = (jobId: string) => {
+    return myApplications.some((app: any) => 
+      (typeof app.job === 'string' ? app.job : app.job._id) === jobId
+    );
+  };
+
+  const handleApply = (job: Job) => {
+    if (hasApplied(job._id)) {
+      toast.error('You have already applied for this job');
+      return;
+    }
+    setSelectedJob(job);
+    setShowApplicationModal(true);
+  };
+
+  const handleSubmitApplication = () => {
+    if (!selectedJob) return;
+    submitApplicationMutation.mutate({
+      jobId: selectedJob._id,
+      message: applicationMessage,
+    });
+  };
 
   const getActionButton = (job: Job) => {
     if (user?.role === 'client') {
@@ -165,10 +214,10 @@ const JobsPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="primary"
-                        onClick={() => acceptJobMutation.mutate(job._id)}
-                        loading={acceptJobMutation.isLoading}
+                        onClick={() => handleApply(job)}
+                        disabled={hasApplied(job._id)}
                       >
-                        Accept Job
+                        {hasApplied(job._id) ? 'Applied' : 'Apply Now'}
                       </Button>
                     </div>
                   </div>
@@ -290,6 +339,67 @@ const JobsPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Application Modal */}
+      {showApplicationModal && selectedJob && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Apply for Job</h2>
+              
+              {/* Job Summary */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-gray-900">{selectedJob.title}</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {selectedJob.category.name} • {selectedJob.city} • {formatCurrency(selectedJob.hourlyRate)}/hr
+                </p>
+              </div>
+
+              {/* Application Message */}
+              <div className="mb-6">
+                <label className="form-label">
+                  Message to Client (Optional)
+                </label>
+                <textarea
+                  className="form-input"
+                  rows={4}
+                  placeholder="Introduce yourself, mention relevant experience, or ask questions..."
+                  value={applicationMessage}
+                  onChange={(e) => setApplicationMessage(e.target.value)}
+                  maxLength={500}
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  {applicationMessage.length}/500 characters
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowApplicationModal(false);
+                    setSelectedJob(null);
+                    setApplicationMessage('');
+                  }}
+                  disabled={submitApplicationMutation.isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  className="flex-1"
+                  onClick={handleSubmitApplication}
+                  loading={submitApplicationMutation.isLoading}
+                >
+                  Submit Application
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

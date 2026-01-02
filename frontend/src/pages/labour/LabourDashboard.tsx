@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { AlertCircle, CheckCircle, Clock, Star, Search, FileText, Briefcase, DollarSign, MapPin } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Job } from '../../types';
-import { formatDate, formatCurrency, getStatusColor, getStatusText, renderStars } from '../../utils/helpers';
+import { formatDate, formatCurrency, getStatusColor, getStatusText } from '../../utils/helpers';
+import StarRating from '../../components/ui/StarRating';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
 import Notification from '../../components/ui/Notification';
@@ -192,7 +193,7 @@ const LabourDashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium">Hourly Rate</p>
-                    <p className="text-sm text-gray-900 font-semibold">₹{formatCurrency(labour?.hourlyRate || 0)}/hr</p>
+                    <p className="text-sm text-gray-900 font-semibold">{formatCurrency(labour?.hourlyRate || 0)}/hr</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -211,8 +212,13 @@ const LabourDashboard: React.FC = () => {
                   <div>
                     <p className="text-xs text-gray-500 font-medium">Rating</p>
                     <div className="flex items-center gap-2">
-                      {renderStars(labour?.averageRating || 0)}
-                      <span className="text-sm text-gray-600">({labour?.ratingCount || 0})</span>
+                      <StarRating 
+                        rating={labour?.averageRating || 0} 
+                        readonly 
+                        size="sm"
+                        showCount
+                        count={labour?.ratingCount || 0}
+                      />
                     </div>
                   </div>
                 </div>

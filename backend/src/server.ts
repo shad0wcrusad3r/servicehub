@@ -12,6 +12,7 @@ import jobRoutes from './routes/jobs';
 import jobApplicationRoutes from './routes/jobApplications';
 import categoryRoutes from './routes/categories';
 import paymentRoutes from './routes/payments';
+import ratingRoutes from './routes/ratings';
 
 // Load environment variables
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/jobs', jobApplicationRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/ratings', ratingRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

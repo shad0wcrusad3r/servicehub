@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { ArrowLeft, Phone, Star, MapPin, CheckCircle, XCircle } from 'lucide-react';
 import { JobApplication } from '../../types';
-import { formatDate, formatCurrency, renderStars, formatPhoneDisplay } from '../../utils/helpers';
+import { formatDate, formatCurrency, formatPhoneDisplay } from '../../utils/helpers';
+import StarRating from '../../components/ui/StarRating';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
 import api from '../../utils/api';
@@ -104,10 +105,13 @@ const JobApplicationsPage: React.FC = () => {
                           {application.labour.name}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
-                          {renderStars(application.labour.averageRating)}
-                          <span className="text-sm text-gray-600">
-                            ({application.labour.ratingCount} reviews)
-                          </span>
+                          <StarRating 
+                            rating={application.labour.averageRating} 
+                            readonly 
+                            size="sm"
+                            showCount
+                            count={application.labour.ratingCount}
+                          />
                         </div>
                       </div>
                       <div className="text-right">

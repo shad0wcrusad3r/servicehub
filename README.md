@@ -143,7 +143,7 @@ Ensure the following are installed on your machine:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/pruthvi-24/servicehub.git
+git clone https://github.com/shad0wcrusad3r/servicehub.git
 cd "SE-WT Project"
 ```
 
